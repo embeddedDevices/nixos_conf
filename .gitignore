@@ -1,0 +1,5 @@
+# lokale Sicherung, nicht ins Repo
+_backup_*/
+# nix build output
+result
+result-*
