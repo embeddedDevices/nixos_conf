@@ -181,7 +181,8 @@
      description = "Dennis";
      extraGroups = ["networkmanager" "wheel" "video" "audio" ]; # Enable ‘sudo’ for the user.
      shell = pkgs.zsh; #ZSH als Standard-Shell für meinen Benutzer festlegen.
-     initialPassword = "geheimespwd";
+     # Kein Passwort im (öffentlichen) Repo! Nach Neuinstallation setzen mit:
+     #   sudo nixos-enter --root /mnt -c 'passwd dennis'
   };
 
   #-- Tailscale-Dienst
