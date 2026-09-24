@@ -80,10 +80,10 @@ cursor {
 
 
 // ---------------------------------------------------------------------------
-// LOOK AND FEEL (angelehnt an hyprland.lua)
+// LOOK AND FEEL (niri-Standard aus default-config.kdl)
 // ---------------------------------------------------------------------------
 layout {
-    gaps 4
+    gaps 16
 
     center-focused-column "never"
 
@@ -94,27 +94,28 @@ layout {
     }
     default-column-width { proportion 0.5; }
 
-    // Hyprland-Rahmen: Verlauf 33ccff -> 00ff99, 45°
     focus-ring {
-        off
+        width 4
+        active-color "#7fc8ff"
+        inactive-color "#505050"
     }
+
     border {
-        width 2
-        active-gradient from="#33ccffee" to="#00ff99ee" angle=45
-        inactive-color "#595959aa"
+        off
+        width 4
+        active-color "#ffc87f"
+        inactive-color "#505050"
+        urgent-color "#9b0000"
     }
 
     shadow {
-        on
-        softness 12
-        spread 4
-        offset x=0 y=4
-        color "#00000066"
+        // off wie im niri-Standard; zum Einschalten "on" eintragen
+        softness 30
+        spread 5
+        offset x=0 y=5
+        color "#0007"
     }
 }
-
-// Clientseitige Dekorationen (Titelleisten) möglichst abschalten
-prefer-no-csd
 
 // Screenshots von niri selbst (Noctalia-Screenshots siehe Keybinds)
 screenshot-path "~/Pictures/screenshots/Screenshot_%Y%m%d_%H%M%S.png"
@@ -123,20 +124,12 @@ hotkey-overlay {
     skip-at-startup
 }
 
-// Globaler Blur (Noctalia-Empfehlung)
-blur {
-    passes 2
-    offset 3.0
-    noise 0.03
-    saturation 1.0
-}
-
-
 // ---------------------------------------------------------------------------
 // AUTOSTART
 // ---------------------------------------------------------------------------
 // Noctalia bringt Bar, Launcher, Notifications, Tray, Wallpaper, Lockscreen,
-// OSD und Polkit-Agent mit -> kein waybar/nm-applet/blueman-applet/awww nötig.
+// OSD, WLAN-/Bluetooth-Module und Polkit-Agent mit -> kein waybar/nm-applet/
+// blueman-applet/awww nötig (deren XDG-Autostart ist in niri.nix abgeschaltet).
 // Xwayland: niri startet xwayland-satellite automatisch (Paket in niri.nix).
 spawn-at-startup "noctalia"
 
@@ -144,16 +137,16 @@ spawn-at-startup "noctalia"
 // ---------------------------------------------------------------------------
 // WINDOW-/LAYER-RULES
 // ---------------------------------------------------------------------------
+// niri-Standard: WezTerm-Workaround
 window-rule {
-    // rounding = 8 aus hyprland.lua
-    geometry-corner-radius 8
-    clip-to-geometry true
+    match app-id=r#"^org\.wezfurlong\.wezterm$"#
+    default-column-width {}
+}
 
-    // Blur hinter (transparenten) Fenstern, ohne xray
-    background-effect {
-        blur true
-        xray false
-    }
+// niri-Standard: Firefox Bild-im-Bild schwebend
+window-rule {
+    match app-id=r#"firefox$"# title="^Picture-in-Picture$"
+    open-floating true
 }
 
 // Noctalia-Einstellungsfenster schwebend
