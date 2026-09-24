@@ -1,0 +1,326 @@
+// ============================================================================
+// NIRI CONFIGURATION (niri >= 26.04) mit NOCTALIA SHELL (v5)
+// ============================================================================
+// Wird über niri.nix nach ~/.config/niri/config.kdl gelinkt und beim
+// nixos-rebuild mit `niri validate` geprüft.
+//
+// Keybindings: 1:1 aus hyprland.lua übernommen (Noctalia-IPC statt
+// wofi/hyprlock/wpctl/playerctl/grim/awww), plus Noctalia-Standard-Binds
+// (Mod+Space, Mod+S, Mod+Comma, Alt+Tab), die in Hyprland nicht belegt sind.
+// Doku: https://github.com/YaLTeR/niri/wiki  |  https://docs.noctalia.dev/
+
+
+// ---------------------------------------------------------------------------
+// MONITORE (wie hyprland.lua)
+// ---------------------------------------------------------------------------
+output "eDP-1" {
+    mode "1920x1080"
+    scale 1
+    position x=0 y=0
+}
+
+output "DP-6" {
+    mode "2560x1080"
+    scale 1
+    position x=1920 y=0
+}
+
+output "DP-5" {
+    mode "1920x1080"
+    scale 1
+    position x=4480 y=0
+}
+
+// ---------------------------------------------------------------------------
+// WORKSPACES (benannt + fest einem Monitor zugeordnet, wie hyprland.lua)
+// Benannte Workspaces sind persistent -> Noctalia zeigt sie immer an.
+// ---------------------------------------------------------------------------
+workspace "1" { open-on-output "DP-6"; }
+workspace "2" { open-on-output "DP-6"; }
+workspace "3" { open-on-output "DP-5"; }
+workspace "4" { open-on-output "DP-5"; }
+workspace "5" { open-on-output "eDP-1"; }
+workspace "6" { open-on-output "eDP-1"; }
+// Ersatz für Hyprlands "special:magic" (Scratchpad)
+workspace "magic"
+
+
+// ---------------------------------------------------------------------------
+// INPUT
+// ---------------------------------------------------------------------------
+input {
+    keyboard {
+        xkb {
+            layout "de"
+        }
+        numlock
+    }
+
+    touchpad {
+        tap
+        // natural-scroll  // wie Hyprland: aus
+    }
+
+    // follow_mouse = 1
+    focus-follows-mouse max-scroll-amount="0%"
+}
+
+// IBus läuft in niri nicht -> GTK/Qt sollen kein IBus-Modul laden
+// (Variablen kommen aus i18n.inputMethod, das GNOME systemweit aktiviert)
+environment {
+    GTK_IM_MODULE null
+    QT_IM_MODULE null
+    XMODIFIERS null
+}
+
+cursor {
+    xcursor-theme "Adwaita"
+    xcursor-size 24
+}
+
+
+// ---------------------------------------------------------------------------
+// LOOK AND FEEL (angelehnt an hyprland.lua)
+// ---------------------------------------------------------------------------
+layout {
+    gaps 4
+
+    center-focused-column "never"
+
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+    default-column-width { proportion 0.5; }
+
+    // Hyprland-Rahmen: Verlauf 33ccff -> 00ff99, 45°
+    focus-ring {
+        off
+    }
+    border {
+        width 2
+        active-gradient from="#33ccffee" to="#00ff99ee" angle=45
+        inactive-color "#595959aa"
+    }
+
+    shadow {
+        on
+        softness 12
+        spread 4
+        offset x=0 y=4
+        color "#00000066"
+    }
+}
+
+// Clientseitige Dekorationen (Titelleisten) möglichst abschalten
+prefer-no-csd
+
+// Screenshots von niri selbst (Noctalia-Screenshots siehe Keybinds)
+screenshot-path "~/Pictures/screenshots/Screenshot_%Y%m%d_%H%M%S.png"
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+// Globaler Blur (Noctalia-Empfehlung)
+blur {
+    passes 2
+    offset 3.0
+    noise 0.03
+    saturation 1.0
+}
+
+
+// ---------------------------------------------------------------------------
+// AUTOSTART
+// ---------------------------------------------------------------------------
+// Noctalia bringt Bar, Launcher, Notifications, Tray, Wallpaper, Lockscreen,
+// OSD und Polkit-Agent mit -> kein waybar/nm-applet/blueman-applet/awww nötig.
+// Xwayland: niri startet xwayland-satellite automatisch (Paket in niri.nix).
+spawn-at-startup "noctalia"
+
+
+// ---------------------------------------------------------------------------
+// WINDOW-/LAYER-RULES
+// ---------------------------------------------------------------------------
+window-rule {
+    // rounding = 8 aus hyprland.lua
+    geometry-corner-radius 8
+    clip-to-geometry true
+
+    // Blur hinter (transparenten) Fenstern, ohne xray
+    background-effect {
+        blur true
+        xray false
+    }
+}
+
+// Noctalia-Einstellungsfenster schwebend
+window-rule {
+    match app-id="dev.noctalia.Noctalia"
+    open-floating true
+    default-column-width { fixed 1080; }
+    default-window-height { fixed 920; }
+}
+
+// Noctalia: kein xray auf Bar, Panels, Dock, Notifications, OSD
+layer-rule {
+    match namespace="^noctalia-(bar-[^\"]+|notification|dock|panel|attached-panel|osd)$"
+    background-effect {
+        xray false
+    }
+}
+
+// Noctalia: Window-Switcher mit Blur
+layer-rule {
+    match namespace="noctalia-window-switcher"
+    background-effect {
+        blur true
+        xray false
+    }
+}
+
+// Overview: geblurrtes Noctalia-Wallpaper als Hintergrund
+// (benötigt [backdrop] enabled = true in noctalia.nix)
+layer-rule {
+    match namespace="^noctalia-backdrop"
+    place-within-backdrop true
+}
+
+debug {
+    // Notification-Actions & Fensteraktivierung aus Noctalia heraus
+    honor-xdg-activation-with-invalid-serial
+}
+
+
+// ---------------------------------------------------------------------------
+// KEYBINDINGS
+// ---------------------------------------------------------------------------
+// Mod = Super (Windows-Taste). Mod+LMB ziehen = Fenster bewegen,
+// Mod+RMB ziehen = Größe ändern -> in niri bereits eingebaut.
+binds {
+    // ===== Aus hyprland.lua übernommen ====================================
+
+    // --- Programme ---
+    Mod+Q hotkey-overlay-title="Terminal: kitty" { spawn "kitty"; }
+    Mod+Return hotkey-overlay-title="Terminal: kitty" { spawn "kitty"; }
+    Mod+E hotkey-overlay-title="Dateimanager: superfile" { spawn-sh "kitty -- zsh -c 'sleep 0.1 && superfile'"; }
+    Mod+Shift+E hotkey-overlay-title="Dateimanager: Nautilus" { spawn "nautilus"; }
+    Mod+B hotkey-overlay-title="Browser: Firefox" { spawn "firefox"; }
+    Mod+M hotkey-overlay-title="Mail: Thunderbird" { spawn "thunderbird"; }
+    Mod+K hotkey-overlay-title="KeePassXC" { spawn "keepassxc"; }
+
+    // --- Noctalia statt wofi / hyprlock / hyprshutdown ---
+    Mod+R hotkey-overlay-title="Launcher (Noctalia)" { spawn-sh "noctalia msg panel-toggle launcher"; }
+    Mod+L hotkey-overlay-title="Bildschirm sperren (Noctalia)" { spawn-sh "noctalia msg session lock"; }
+    Mod+H hotkey-overlay-title="Session-Menü (Noctalia)" { spawn-sh "noctalia msg panel-toggle session"; }
+
+    // --- Fenster ---
+    Mod+C repeat=false { close-window; }
+    Mod+V { toggle-window-floating; }
+    Mod+F { maximize-column; }
+    // dwindle "togglesplit" -> Spaltenbreite durchschalten
+    Mod+T { switch-preset-column-width; }
+    // Mod+P (pseudo) gibt es in niri nicht
+
+    // --- Gruppen -> Tabs ---
+    Mod+G { toggle-column-tabbed-display; }
+    Alt+Right { focus-window-down; }
+    Alt+Left { focus-window-up; }
+
+    // --- Fokus (über Monitorgrenzen hinweg wie in Hyprland) ---
+    Mod+Left  { focus-column-or-monitor-left; }
+    Mod+Right { focus-column-or-monitor-right; }
+    Mod+Up    { focus-window-or-monitor-up; }
+    Mod+Down  { focus-window-or-monitor-down; }
+
+    // --- Fenster verschieben ---
+    Mod+Shift+Left  { move-column-left-or-to-monitor-left; }
+    Mod+Shift+Right { move-column-right-or-to-monitor-right; }
+    Mod+Shift+Up    { move-window-up; }
+    Mod+Shift+Down  { move-window-down; }
+
+    // --- Fenster tauschen ---
+    Mod+Alt+Left  { swap-window-left; }
+    Mod+Alt+Right { swap-window-right; }
+    Mod+Alt+Up    { move-window-up; }
+    Mod+Alt+Down  { move-window-down; }
+
+    // --- Workspaces 1-6 (benannt, monitorgebunden wie in Hyprland) ---
+    Mod+1 { focus-workspace "1"; }
+    Mod+2 { focus-workspace "2"; }
+    Mod+3 { focus-workspace "3"; }
+    Mod+4 { focus-workspace "4"; }
+    Mod+5 { focus-workspace "5"; }
+    Mod+6 { focus-workspace "6"; }
+    Mod+Shift+1 { move-window-to-workspace "1"; }
+    Mod+Shift+2 { move-window-to-workspace "2"; }
+    Mod+Shift+3 { move-window-to-workspace "3"; }
+    Mod+Shift+4 { move-window-to-workspace "4"; }
+    Mod+Shift+5 { move-window-to-workspace "5"; }
+    Mod+Shift+6 { move-window-to-workspace "6"; }
+    // --- Workspaces 7-10 (dynamisch, Index auf dem aktuellen Monitor) ---
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    Mod+0 { focus-workspace 10; }
+    Mod+Shift+7 { move-window-to-workspace 7; }
+    Mod+Shift+8 { move-window-to-workspace 8; }
+    Mod+Shift+9 { move-window-to-workspace 9; }
+    Mod+Shift+0 { move-window-to-workspace 10; }
+
+    // --- Scratchpad "magic" ---
+    Mod+Alt+M { focus-workspace "magic"; }
+    Mod+Shift+M { move-window-to-workspace "magic"; }
+
+    // --- Workspaces mit Mod + Mausrad ---
+    Mod+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+    Mod+WheelScrollUp   cooldown-ms=150 { focus-workspace-up; }
+
+    // --- hyprexpo -> niri Overview ---
+    Mod+X repeat=false { toggle-overview; }
+
+    // --- Multimedia-Tasten -> Noctalia (mit OSD) ---
+    XF86AudioRaiseVolume  allow-when-locked=true { spawn-sh "noctalia msg volume-up"; }
+    XF86AudioLowerVolume  allow-when-locked=true { spawn-sh "noctalia msg volume-down"; }
+    XF86AudioMute         allow-when-locked=true { spawn-sh "noctalia msg volume-mute"; }
+    XF86AudioMicMute      allow-when-locked=true { spawn-sh "noctalia msg mic-mute"; }
+    XF86MonBrightnessUp   allow-when-locked=true { spawn-sh "noctalia msg brightness-up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn-sh "noctalia msg brightness-down"; }
+
+    XF86AudioNext  allow-when-locked=true { spawn-sh "noctalia msg media next"; }
+    XF86AudioPause allow-when-locked=true { spawn-sh "noctalia msg media toggle"; }
+    XF86AudioPlay  allow-when-locked=true { spawn-sh "noctalia msg media toggle"; }
+    XF86AudioPrev  allow-when-locked=true { spawn-sh "noctalia msg media previous"; }
+
+    // --- Screenshots & Wallpaper -> Noctalia ---
+    Print hotkey-overlay-title="Screenshot Bereich (Noctalia)" { spawn-sh "noctalia msg screenshot-region"; }
+    Mod+Shift+S hotkey-overlay-title="Screenshot Bereich (Noctalia)" { spawn-sh "noctalia msg screenshot-region"; }
+    Mod+Shift+W hotkey-overlay-title="Nächstes Wallpaper (Noctalia)" { spawn-sh "noctalia msg wallpaper-next"; }
+
+
+    // ===== Noctalia-Standard-Binds (in Hyprland nicht belegt) ==============
+    Mod+Space hotkey-overlay-title="Launcher (Noctalia)" { spawn-sh "noctalia msg panel-toggle launcher"; }
+    Mod+S hotkey-overlay-title="Control Center (Noctalia)" { spawn-sh "noctalia msg panel-toggle control-center"; }
+    Mod+Comma hotkey-overlay-title="Einstellungen (Noctalia)" { spawn-sh "noctalia msg settings-toggle"; }
+    Alt+Tab hotkey-overlay-title="Fensterwechsler (Noctalia)" { spawn-sh "noctalia msg window-switcher"; }
+
+
+    // ===== niri-spezifisch (kein Hyprland-Gegenstück) =====================
+    Mod+Shift+Slash { show-hotkey-overlay; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Plus  { set-column-width "+10%"; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+Plus  { set-window-height "+10%"; }
+    Mod+Ctrl+Left  { move-column-to-monitor-left; }
+    Mod+Ctrl+Right { move-column-to-monitor-right; }
+    Mod+Page_Down { focus-workspace-down; }
+    Mod+Page_Up   { focus-workspace-up; }
+    // Fenster mitnehmen in den Workspace darunter/darüber
+    Mod+Ctrl+Page_Down { move-window-to-workspace-down; }
+    Mod+Ctrl+Page_Up   { move-window-to-workspace-up; }
+    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+    Ctrl+Alt+Delete { quit; }
+}

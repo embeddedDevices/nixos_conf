@@ -52,6 +52,7 @@
     extraPortals = with pkgs; [
       xdg-desktop-portal-gtk
       xdg-desktop-portal-hyprland
+      xdg-desktop-portal-gnome   # niri: Screencast/Screenshare
     ];
     config = {
       common = {
@@ -62,12 +63,21 @@
         # Dieser Eintrag wird nun endlich vom Home Manager respektiert:
         "org.freedesktop.portal.Settings" = [ "gtk" ];
       };
+      # niri: sonst greift "common" (nur gtk) und Screensharing fehlt
+      niri = {
+        default = [ "gnome" "gtk" ];
+        "org.freedesktop.impl.portal.Access" = [ "gtk" ];
+        "org.freedesktop.impl.portal.Notification" = [ "gtk" ];
+        "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ];
+      };
     };
   };
 
   #integrarion of the home modules:
   imports = [
     ./hyprland.nix
+    ./niri.nix
+    ./noctalia.nix
     ./packages.nix
     ./zsh.nix
     ./kitty.nix

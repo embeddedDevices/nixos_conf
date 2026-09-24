@@ -29,9 +29,15 @@
       url = "github:nmcbride/claude-desktop-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Noctalia Shell (v5) für niri. Bewusst OHNE nixpkgs.follows, damit die
+    # vorgebauten Pakete aus dem Cachix-Cache (configuration.nix) passen.
+    noctalia = {
+      url = "github:noctalia-dev/noctalia";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, nixvim, hyprexpo-src, claude-desktop, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, nixvim, hyprexpo-src, claude-desktop, noctalia, ... }@inputs:
   let
     # Builds hyprexpo against OUR pinned hyprland/nixpkgs (plugins are ABI-sensitive,
     # so it must be built against the exact hyprland revision that will load it).
@@ -57,6 +63,12 @@
             #-- Claude Desktop (offizielles Linux-Build, siehe inputs)
             programs.claude-desktop = {
               enable = true;
+              # Electron erkennt niri/Hyprland nicht als Desktop und würde den
+              # Login nur unverschlüsselt ("basic text") speichern -> Secret
+              # Service (gnome-keyring) über libsecret erzwingen.
+              package = claude-desktop.packages.x86_64-linux.default.override {
+                commandLineArgs = "--password-store=gnome-libsecret";
+              };
               # Cowork (Agent-Sandbox als QEMU-Micro-VM): braucht /dev/kvm,
               # OVMF-Firmware + virtiofsd unter FHS-Pfaden und vhost_vsock.
               # Das Modul richtet alles ein; kvm-Gruppe wird erst nach
@@ -75,6 +87,7 @@
             home-manager.users.dennis = {
               imports = [
                 nixvim.homeModules.nixvim  # Macht "programs.nixvim" verfügbar
+                noctalia.homeModules.default # Macht "programs.noctalia" verfügbar
                 ./home.nix
               ];
             };

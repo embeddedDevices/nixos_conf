@@ -63,6 +63,9 @@
     settings = {
       auto-optimise-store = true;
       experimental-features = [ "nix-command" "flakes" ];
+      #-- Binary-Cache für Noctalia (spart das lokale Kompilieren)
+      extra-substituters = [ "https://noctalia.cachix.org" ];
+      extra-trusted-public-keys = [ "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=" ];
     };
 
     #--automatic storage cleaning
@@ -83,6 +86,12 @@
 
   #--hyprland on system (activation)
   programs.hyprland.enable = true;
+
+  #--niri (scrollendes Tiling) mit Noctalia Shell als dritte Session in GDM
+  #--Konfiguration: niri.kdl / niri.nix, Shell: noctalia.nix (Home-Manager)
+  programs.niri.enable = true;
+  #--das niri-Modul setzt GDM-Default per mkDefault auf "niri"; GNOME bleibt Standard
+  services.displayManager.defaultSession = "gnome";
   
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
