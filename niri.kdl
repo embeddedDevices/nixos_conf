@@ -11,34 +11,55 @@
 
 
 // ---------------------------------------------------------------------------
-// MONITORE (wie hyprland.lua)
+// MONITORE
+// Zwei LG UltraGear (2560x1440) über WavLink PD140W nebeneinander,
+// ThinkPad (1920x1080) zentral darunter:
+//
+//            x=0                 x=2560               x=5120
+//      y=0   +-------------------+-------------------+
+//            |   DP-8 (links)    |   DP-6 (rechts)   |
+//            |    2560x1440      |    2560x1440      |
+//   y=1440   +----------+--------+--------+----------+
+//                       |  eDP-1 1920x1080 |
+//                       +------------------+
+//                    x=1600            x=3520
+//
+// Laptop-Mitte (1600+960=2560) = Stoß zwischen den beiden Monitoren.
+// Ohne Angabe einer Bildwiederholrate wählt niri die höchste verfügbare
+// (UltraGear: 144/165 Hz, falls Dock/Kabel das hergeben).
+//
+// Connector-Namen prüfen mit:  niri msg outputs
+// Hinter Docks können sich DP-x je nach Port/Einstecken ändern. Robuster ist
+// der Name aus "niri msg outputs", z. B.:
+//   output "LG Electronics LG ULTRAGEAR 123NTAB45678" { ... }
+// (Hersteller Modell Seriennummer – unterscheidet auch zwei gleiche Monitore)
 // ---------------------------------------------------------------------------
-output "eDP-1" {
-    mode "1920x1080"
+output "DP-8" {
+    mode "2560x1440"
     scale 1
     position x=0 y=0
 }
 
 output "DP-6" {
-    mode "2560x1080"
+    mode "2560x1440"
     scale 1
-    position x=1920 y=0
+    position x=2560 y=0
 }
 
-output "DP-5" {
+output "eDP-1" {
     mode "1920x1080"
     scale 1
-    position x=4480 y=0
+    position x=1600 y=1440
 }
 
 // ---------------------------------------------------------------------------
 // WORKSPACES (benannt + fest einem Monitor zugeordnet, wie hyprland.lua)
 // Benannte Workspaces sind persistent -> Noctalia zeigt sie immer an.
 // ---------------------------------------------------------------------------
-workspace "1" { open-on-output "DP-6"; }
-workspace "2" { open-on-output "DP-6"; }
-workspace "3" { open-on-output "DP-5"; }
-workspace "4" { open-on-output "DP-5"; }
+workspace "1" { open-on-output "DP-8"; }
+workspace "2" { open-on-output "DP-8"; }
+workspace "3" { open-on-output "DP-6"; }
+workspace "4" { open-on-output "DP-6"; }
 workspace "5" { open-on-output "eDP-1"; }
 workspace "6" { open-on-output "eDP-1"; }
 // Ersatz für Hyprlands "special:magic" (Scratchpad)
@@ -132,6 +153,11 @@ hotkey-overlay {
 // blueman-applet/awww nötig (deren XDG-Autostart ist in niri.nix abgeschaltet).
 // Xwayland: niri startet xwayland-satellite automatisch (Paket in niri.nix).
 spawn-at-startup "noctalia"
+// Beim Start auf Workspace "1" landen: zum linken oberen Monitor (DP-8)
+// wechseln, dort ist "1" der erste Workspace (Index 1). Das kurze sleep
+// wartet, bis die Monitore am Dock erkannt sind.
+// (Per CLI wäre "focus-workspace 1" ein Index, kein Name -> daher der Umweg.)
+spawn-sh-at-startup "sleep 1 && niri msg action focus-monitor-up && niri msg action focus-monitor-left && niri msg action focus-workspace 1"
 
 
 // ---------------------------------------------------------------------------
@@ -309,6 +335,8 @@ binds {
     Mod+Shift+Plus  { set-window-height "+10%"; }
     Mod+Ctrl+Left  { move-column-to-monitor-left; }
     Mod+Ctrl+Right { move-column-to-monitor-right; }
+    Mod+Ctrl+Up    { move-column-to-monitor-up; }
+    Mod+Ctrl+Down  { move-column-to-monitor-down; }
     Mod+Page_Down { focus-workspace-down; }
     Mod+Page_Up   { focus-workspace-up; }
     // Fenster mitnehmen in den Workspace darunter/darüber

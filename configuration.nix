@@ -90,8 +90,9 @@
   #--niri (scrollendes Tiling) mit Noctalia Shell als dritte Session in GDM
   #--Konfiguration: niri.kdl / niri.nix, Shell: noctalia.nix (Home-Manager)
   programs.niri.enable = true;
-  #--das niri-Modul setzt GDM-Default per mkDefault auf "niri"; GNOME bleibt Standard
-  services.displayManager.defaultSession = "gnome";
+  #--niri ist Standard-Session in GDM (GNOME/Hyprland weiter über das Zahnrad wählbar)
+  #--Hinweis: GDM merkt sich die zuletzt gewählte Session pro Benutzer; das gilt vor diesem Default.
+  services.displayManager.defaultSession = "niri";
   
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
@@ -131,6 +132,11 @@
   services.desktopManager.gnome.enable = true;
   # GDM Login-Bildschirm
   services.displayManager.gdm.enable = true;
+  #--GDM-Login auf dem linken LG-Monitor (DP-8): eigenes monitors.xml für den gdm-Benutzer
+  systemd.tmpfiles.rules = [
+    "d /run/gdm/.config 0711 gdm gdm -"
+    "L+ /run/gdm/.config/monitors.xml - - - - ${./gdm-monitors.xml}"
+  ];
 
   #-- GNOME-Dienste für Nautilus (gvfs, tinysparql, localsearch, gnome-keyring)
   #-- werden durch services.desktopManager.gnome bereits aktiviert.
